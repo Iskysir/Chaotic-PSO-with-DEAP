@@ -8,12 +8,17 @@ from numpy import random
 def LoziMap(a, b, x, y):
 	return 1 - a*abs(x) + y, b*x
 
+def save_data(L, name):
+    file = open("./maps/"+name+".dat", 'w')
+    for line in L:
+        file.write(str(line[0])+"\t"+str(line[1])+"\n")
+    file.close()
 
 def main(a, b):
 	# Map dependent parameters
 	# a = 1.4
 	# b = 0.35
-	iterations = 100000
+	iterations = 50000
 
 	# Initial Condition
 	xtemp = random.uniform(0, 1.0)
@@ -33,6 +38,12 @@ def main(a, b):
 
 
 if __name__ == '__main__':
-	main(1.4, 0.35)
+    # for ID in range(30):
+    #     # TODO change the ID value to have different application for each particle for PSO
+    #     appli = rossler_first_return_map(ID)  # appli in [0:1]
+    #     save_data(appli, 'rossler_' + str(ID) + '_appli')
+    #     appli = lorenz_first_return_map(ID)  # WARNING appli in [0:2]
+    #     save_data(appli, 'lorenz_' + str(ID) + '_appli')
+	# main(1.4, 0.35)
 	main(1.5, 0.45)
 

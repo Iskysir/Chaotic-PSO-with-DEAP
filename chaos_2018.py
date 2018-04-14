@@ -6,12 +6,12 @@ import math
 
 def rossler_first_return_map(ID):
     """ 
-    Initial conditions of the simultation depends on the ID to
-    ensure to have distincts values for each call of the map
+    Initial conditions of the simulation depends on the ID to
+    ensure to have distinct values for each call of the map
     """
     Y0 = [-0.4+0.1*ID, 0, 0]
     L = rossler_simulation(50000, 0.01, Y0)  # Solve the Rossler system, Increase 1st param to get more output points
-    L = rotate(L)  # Necessarry to have a clockwise flow
+    L = rotate(L)  # Necessary to have a clockwise flow
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'rossler_'+str(ID)+'_rk4')
     appli = list()
@@ -56,9 +56,9 @@ def rossler_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0], alpha=-0.25):
 
 
 def save_data(L, name):
-    file = open(name+".dat", 'w')
+    file = open("./maps/"+name+".dat", 'w')
     for line in L:
-        file.write(str(line[0])+"\t"+str(line[1])+"\t"+str(line[2])+"\n")
+        file.write(str(line[0])+"\t"+str(line[1])+"\n")
     file.close()
 
 
@@ -101,7 +101,7 @@ def lorenz_first_return_map(ID):
     # resolution of the system with Runge-Kutta
     L = lorenz_simulation(5000, 0.01, Y0)
     # Uncomment to save the solution (require to create folder 'data')
-    save_data(L, 'lorenz_'+str(ID)+'_rk4')
+    # save_data(L, 'lorenz_'+str(ID)+'_rk4')
     appli = list()
     section = list()
     transitoire = 4000
@@ -141,7 +141,7 @@ def lorenz_first_return_map(ID):
 
 
     # Uncomment to save data: the section and the first return map values
-    save_data(section, 'lorenz_'+str(ID)+'_section')
+    # save_data(section, 'lorenz_'+str(ID)+'_section')
     # save_data(appli, 'lorenz_'+str(ID)+'_appli')
     print(len(appli))  # number of points in the map
     return appli
@@ -159,27 +159,31 @@ def lorenz_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0]):
 
 def main():
     # Generate values for Rossler and Lorenz Maps
-    ID = 1 # TODO change the ID value to have different application for each particle for PSO
-    appli = rossler_first_return_map(ID) # appli in [0:1]
-    save_data(appli, 'rossler_'+str(ID)+'_appli')
-    appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
-    save_data(appli, 'lorenz_'+str(ID)+'_appli')
+    for ID in range(30):
+    # TODO change the ID value to have different application for each particle for PSO
+        ID2 = ID
+        if ID == 4: # 4 causes error
+            ID = 30
+        appli = rossler_first_return_map(ID) # appli in [0:1]
+        save_data(appli, 'rossler_'+str(ID2)+'_appli')
+        appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
+        save_data(appli, 'lorenz_'+str(ID2)+'_appli')
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
-    # Lorenz Plot
-    data = np.genfromtxt('lorenz_1_appli.dat')
-    X = data[:, 0]
-    Y = data[:, 1]
-    plt.plot(X, Y, 'b,')
-    plt.show()
-
-    # Rossler Plot
-    data = np.genfromtxt('rossler_1_appli.dat')
-    X = data[:, 0]
-    Y = data[:, 1]
-    plt.plot(X, Y, 'b,')
-    plt.show()
+    # # Lorenz Plot
+    # data = np.genfromtxt('lorenz_1_appli.dat')
+    # X = data[:, 0]
+    # Y = data[:, 1]
+    # plt.plot(X, Y, 'b,')
+    # plt.show()
+    #
+    # # Rossler Plot
+    # data = np.genfromtxt('rossler_1_appli.dat')
+    # X = data[:, 0]
+    # Y = data[:, 1]
+    # plt.plot(X, Y, 'b,')
+    # plt.show()
 

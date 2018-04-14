@@ -1,6 +1,5 @@
 import random
 from typing import Any, Union, Generator
-
 import numpy
 import operator
 import matplotlib.pyplot as plt
@@ -11,7 +10,7 @@ creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Particle", list, fitness=creator.FitnessMin, speed=list, smin=None, smax=None, best=None)
 
 #  number of generations
-GEN = 1000  # type: int
+GEN = 200  # type: int
 #  population size
 SIZE = 20  # type: int
 pos0 = []  # type: List[Double]
@@ -39,13 +38,8 @@ def generate(size, pmin, pmax, smin, smax):
     global pos0
     for _ in range(size):
         pos0.append(random.uniform(0, 1))
-    print(len(pos0))
-
     for _ in range(size):
         vel0.append(random.uniform(0, 1))
-    print(len(pos0))
-    print(pos0)
-
     part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
     # part = creator.Particle(pos0[i] for i in range(size))
     part.speed = [random.uniform(smin, smax) for _ in range(size)]
@@ -62,10 +56,6 @@ def updateParticle(part, best, phi1, phi2):
         posN.append(chaoticFunc(val))
     for val in vel0:
         posM.append(chaoticFunc(val))
-
-
-    # u1 = posN  # type: List
-    # u2 = posN  # type: List
     u1 = (posN[i] for i in range(len(part)))
     u2 = (posM[i] for i in range(len(part)))
     v_u1 = map(operator.mul, u1, map(operator.sub, part.best, part))
@@ -83,7 +73,7 @@ def updateParticle(part, best, phi1, phi2):
 
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=200, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+toolbox.register("particle", generate, size=20, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle, phi1=1.0, phi2=1.0)
 toolbox.register("evaluate", benchmarks.sphere)
@@ -118,14 +108,19 @@ def main():
 
 
 if __name__ == '__main__':
-    for r in range(1):
+    noe = 30  # number of experiments
+    average_mins = [0.] * GEN
+    for r in range(noe):
         pop, logbook, best = main()
         print(logbook.select("min"))
-    gen = logbook.select("gen")
-    fit_mins = logbook.select("min")
+        gen = logbook.select("gen")
+        fit_mins = logbook.select("min")
+        for i in range(GEN):
+            average_mins[i] += fit_mins[i]/noe
+
     plt.xlabel("Generation")
     plt.ylabel("Minimum Fitness")
-    plt.plot(gen, fit_mins)
+    plt.plot(gen, average_mins)
     plt.show()
 
 
