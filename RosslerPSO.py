@@ -10,28 +10,35 @@ creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Particle", list, fitness=creator.FitnessMin, speed=list, smin=None, smax=None, best=None)
 
 #  number of generations
-GEN = 100  # type: int
-#  population size
-POP_SIZE = 8  # type: int
+GEN = 200  # type: int
+#  populution size
+POP_SIZE = 10  # type: int
 pos0 = []  # type: List[Double]
 vel0 = []  # type: List[Double]
 
-data = numpy.genfromtxt("maps/rossler_" + str(4) + "_appli.dat")
+data = numpy.genfromtxt("maps/rossler_" + str(0) + "_appli.dat")
 # dataVEL = numpy.genfromtxt("maps/lorenz_" + str(1) + "_appli.dat")
-count = 0
+count = 1
 
 
 def RosslerMap(count):
     # X = data[:, 0]
     # Y = data[:, 1]
-    return data[count, 0], abs(data[count, 1]) * 0.2
+    return data[count, 0], data[count - 1, 0]
+
+def save_data(file_name, average_mins):
+    file = open("output/" + file_name + ".dat", 'w')
+    for record in average_mins:
+        file.write(str(record) + "\n")
+    file.close()
 
 
 def generate(size, pmin, pmax, smin, smax):
     global pos0, count
+    count = 1
     for _ in range(size):
         pos0.append(data[count, 0])
-        vel0.append(abs(data[count, 1]) * 0.2)
+        vel0.append(data[count - 1, 0])
         count += 1
         print(count)
     print("Generation Complete")
@@ -71,7 +78,7 @@ def updateParticle(part, best, phi1, phi2):
 
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=10, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+toolbox.register("particle", generate, size=8, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
 toolbox.register("evaluate", benchmarks.sphere)
@@ -117,6 +124,9 @@ if __name__ == '__main__':
         fit_mins = logbook.select("min")
         for i in range(GEN):
             average_mins[i] += fit_mins[i]/noe
+
+    file_name = "rossler_results"
+    #save_data(file_name, average_mins)
 
     plt.xlabel("Generation")
     plt.ylabel("Minimum Fitness")

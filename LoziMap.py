@@ -6,7 +6,7 @@ from numpy import random
 
 
 def LoziMap(a, b, x, y):
-	return 1 - a*abs(x) + y, b*x
+	return 1 - a*abs(x) + b*y, x
 
 def save_data(L, name):
     file = open("./maps/"+name+".dat", 'w')
@@ -45,5 +45,5 @@ if __name__ == '__main__':
     #     appli = lorenz_first_return_map(ID)  # WARNING appli in [0:2]
     #     save_data(appli, 'lorenz_' + str(ID) + '_appli')
 	# main(1.4, 0.35)
-	main(1.5, 0.45)
+	main(1.7, 0.5)
 

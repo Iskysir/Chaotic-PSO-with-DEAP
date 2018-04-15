@@ -12,7 +12,7 @@ creator.create("Particle", list, fitness=creator.FitnessMin, speed=list, smin=No
 #  number of generations
 GEN = 200  # type: int
 #  population size
-POP_SIZE = 20  # type: int
+POP_SIZE = 10  # type: int
 pos0 = []  # type: List[Double]
 vel0 = []  # type: List[Double]
 
@@ -25,6 +25,13 @@ def LogisticMap(xn):
 #  Select which chaotic map to use
 def chaoticFunc(xn):
     return LogisticMap(xn)
+
+
+def save_data(file_name, average_mins):
+    file = open("output/" + file_name + ".dat", 'w')
+    for record in average_mins:
+        file.write(str(record) + "\n")
+    file.close()
 
 
 def generate(size, pmin, pmax, smin, smax):
@@ -66,7 +73,7 @@ def updateParticle(part, best, phi1, phi2):
 
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=20, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+toolbox.register("particle", generate, size=60, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle, phi1=1.0, phi2=1.0)
 toolbox.register("evaluate", benchmarks.sphere)
@@ -101,7 +108,7 @@ def main():
 
 
 if __name__ == '__main__':
-    noe = 3  # number of experiments
+    noe = 30  # number of experiments
     average_mins = [0.] * GEN
     for r in range(noe):
         pop, logbook, best = main()
@@ -110,6 +117,9 @@ if __name__ == '__main__':
         fit_mins = logbook.select("min")
         for i in range(GEN):
             average_mins[i] += fit_mins[i]/noe
+
+    file_name = "logistic_results"
+    save_data(file_name, average_mins)
 
     plt.xlabel("Generation")
     plt.ylabel("Minimum Fitness")

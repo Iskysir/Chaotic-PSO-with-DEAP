@@ -24,7 +24,14 @@ count = 0
 def LorenzMap(count):
     # X = data[:, 0]
     # Y = data[:, 1]
-    return data[count, 0], abs(data[count, 2]) * 0.2
+    return data[count, 0], data[count, 1]
+
+
+def save_data(file_name, average_mins):
+    file = open("output/" + file_name + ".dat", 'w')
+    for record in average_mins:
+        file.write(str(record) + "\n")
+    file.close()
 
 
 def generate(size, pmin, pmax, smin, smax):
@@ -32,7 +39,7 @@ def generate(size, pmin, pmax, smin, smax):
     count = 0
     for _ in range(size):
         pos0.append(data[count, 0])
-        vel0.append(abs(data[count, 2]) * 0.2)
+        vel0.append(data[count, 1])
         count += 1
         print(count)
     print("Generation Complete")
@@ -118,6 +125,9 @@ if __name__ == '__main__':
         fit_mins = logbook.select("min")
         for i in range(GEN):
             average_mins[i] += fit_mins[i]/noe
+
+    file_name = "lorenz_results"
+    save_data(file_name, average_mins)
 
     plt.xlabel("Generation")
     plt.ylabel("Minimum Fitness")

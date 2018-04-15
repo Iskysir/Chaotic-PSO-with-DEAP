@@ -9,7 +9,7 @@ def rossler_first_return_map(ID):
     ensure to have distincts values for each call of the map
     """
     Y0 = [-0.4+0.1*ID, 0, 0]
-    L = rossler_simulation(10000000, 0.01, Y0)  # Solve the Rossler system
+    L = rossler_simulation(30000000, 0.01, Y0)  # Solve the Rossler system
     L = rotate(L)  # Necessarry to have a clockwise flow
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'rossler_'+str(ID)+'_rk4')
@@ -156,15 +156,15 @@ def lorenz_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0]):
 
 def main():
     # Generate values for Rossler and Lorenz Maps
-    for ID in range(2):
+    for ID in range(30):
     # TODO change the ID value to have different application for each particle for PSO
         ID2 = ID
         if ID == 4: # 4 causes error
             ID = 30
         appli = rossler_first_return_map(ID) # appli in [0:1]
         save_data(appli, 'maps/rossler_'+str(ID2)+'_appli')
-        # appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
-        # save_data(appli, 'maps/lorenz_'+str(ID2)+'_appli')
+        appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
+        save_data(appli, 'maps/lorenz_'+str(ID2)+'_appli')
     # appli = lorenz_first_return_map(0)  # WARNING appli in [0:2]
     # save_data(appli, 'maps/lorenz_' + str(1) + '_appli')
 
