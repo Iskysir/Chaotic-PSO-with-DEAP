@@ -3,15 +3,14 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import math
 
-
 def rossler_first_return_map(ID):
-    """ 
-    Initial conditions of the simulation depends on the ID to
-    ensure to have distinct values for each call of the map
+    """
+    Initial conditions of the simultation depends on the ID to
+    ensure to have distincts values for each call of the map
     """
     Y0 = [-0.4+0.1*ID, 0, 0]
-    L = rossler_simulation(50000, 0.01, Y0)  # Solve the Rossler system, Increase 1st param to get more output points
-    L = rotate(L)  # Necessary to have a clockwise flow
+    L = rossler_simulation(10000000, 0.01, Y0)  # Solve the Rossler system
+    L = rotate(L)  # Necessarry to have a clockwise flow
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'rossler_'+str(ID)+'_rk4')
     appli = list()
@@ -27,10 +26,8 @@ def rossler_first_return_map(ID):
         previous = list(current)
         current = line
         if count > transitoire:
-            in_section = poincare_section(0, 0, previous[0], current[0],
-                                          previous[1], current[1])
-            in_other = poincare_section(0, 0, previous[0], current[0],
-                                        previous[2], current[2])
+            in_section = poincare_section(0, 0, previous[0], current[0], previous[1], current[1])
+            in_other = poincare_section(0, 0, previous[0], current[0], previous[2], current[2])
             if in_section[0]:
                 section.append([0, in_section[1], in_other[1]])
                 tpsec = sec
@@ -39,7 +36,7 @@ def rossler_first_return_map(ID):
                 if tpsec != 0:
                     appli.append([tpsec, sec, in_section[1]])
     # Uncomment to save data: the section and the first return map values
-    # save_data(section, 'rossler_'+str(ID)+'_section')
+    save_data(section, 'rossler_'+str(ID)+'_section')
     # save_data(appli, 'rossler_'+str(ID)+'_appli')
     print(len(appli))  # number of points in the map
     return appli
@@ -56,10 +53,10 @@ def rossler_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0], alpha=-0.25):
 
 
 def save_data(L, name):
-    file = open("./maps/"+name+".dat", 'w')
+    fichier = open(name+".dat", 'w')
     for line in L:
-        file.write(str(line[0])+"\t"+str(line[1])+"\n")
-    file.close()
+        fichier.write(str(line[0])+"\t"+str(line[2])+"\n")
+    fichier.close()
 
 
 def poincare_section(sens, plan, v0, v1, obs0, obs1):
@@ -99,7 +96,7 @@ def lorenz_first_return_map(ID):
     b = 8.0/3.0
     s = 10.0
     # resolution of the system with Runge-Kutta
-    L = lorenz_simulation(5000, 0.01, Y0)
+    L = lorenz_simulation(1000000, 0.01, Y0)
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'lorenz_'+str(ID)+'_rk4')
     appli = list()
@@ -159,29 +156,30 @@ def lorenz_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0]):
 
 def main():
     # Generate values for Rossler and Lorenz Maps
-    for ID in range(30):
+    for ID in range(2):
     # TODO change the ID value to have different application for each particle for PSO
         ID2 = ID
         if ID == 4: # 4 causes error
             ID = 30
         appli = rossler_first_return_map(ID) # appli in [0:1]
-        save_data(appli, 'rossler_'+str(ID2)+'_appli')
-        appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
-        save_data(appli, 'lorenz_'+str(ID2)+'_appli')
-
+        save_data(appli, 'maps/rossler_'+str(ID2)+'_appli')
+        # appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
+        # save_data(appli, 'maps/lorenz_'+str(ID2)+'_appli')
+    # appli = lorenz_first_return_map(0)  # WARNING appli in [0:2]
+    # save_data(appli, 'maps/lorenz_' + str(1) + '_appli')
 
 if __name__ == '__main__':
     main()
 
     # # Lorenz Plot
-    # data = np.genfromtxt('lorenz_1_appli.dat')
+    # data = np.genfromtxt("maps/lorenz_15_appli.dat")
     # X = data[:, 0]
     # Y = data[:, 1]
     # plt.plot(X, Y, 'b,')
     # plt.show()
     #
     # # Rossler Plot
-    # data = np.genfromtxt('rossler_1_appli.dat')
+    # data = np.genfromtxt("maps/rossler_18_appli.dat")
     # X = data[:, 0]
     # Y = data[:, 1]
     # plt.plot(X, Y, 'b,')

@@ -12,7 +12,7 @@ creator.create("Particle", list, fitness=creator.FitnessMin, speed=list, smin=No
 #  number of generations
 GEN = 200  # type: int
 #  population size
-SIZE = 20  # type: int
+POP_SIZE = 20  # type: int
 pos0 = []  # type: List[Double]
 vel0 = []  # type: List[Double]
 
@@ -20,13 +20,6 @@ vel0 = []  # type: List[Double]
 def LogisticMap(xn):
     r = 4.  # r is the chaos growth rate
     return r * xn * (1. - xn)
-
-
-def LoziMap(x, y):
-    # Map dependent parameters
-    a = 1.4
-    b = 0.3
-    return 1. - a * abs(x) + y, b * x
 
 
 #  Select which chaotic map to use
@@ -37,9 +30,9 @@ def chaoticFunc(xn):
 def generate(size, pmin, pmax, smin, smax):
     global pos0
     for _ in range(size):
-        pos0.append(random.uniform(0, 1))
+        pos0.append(random.uniform(0, 1.))
     for _ in range(size):
-        vel0.append(random.uniform(0, 1))
+        vel0.append(random.uniform(0, 1.))
     part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
     # part = creator.Particle(pos0[i] for i in range(size))
     part.speed = [random.uniform(smin, smax) for _ in range(size)]
@@ -80,7 +73,7 @@ toolbox.register("evaluate", benchmarks.sphere)
 
 
 def main():
-    pop = toolbox.population(n=SIZE)
+    pop = toolbox.population(n=POP_SIZE)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
@@ -108,7 +101,7 @@ def main():
 
 
 if __name__ == '__main__':
-    noe = 30  # number of experiments
+    noe = 3  # number of experiments
     average_mins = [0.] * GEN
     for r in range(noe):
         pop, logbook, best = main()
@@ -122,5 +115,3 @@ if __name__ == '__main__':
     plt.ylabel("Minimum Fitness")
     plt.plot(gen, average_mins)
     plt.show()
-
-
