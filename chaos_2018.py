@@ -3,13 +3,14 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import math
 
+
 def rossler_first_return_map(ID):
     """
     Initial conditions of the simultation depends on the ID to
     ensure to have distincts values for each call of the map
     """
     Y0 = [-0.4+0.1*ID, 0, 0]
-    L = rossler_simulation(30000000, 0.01, Y0)  # Solve the Rossler system
+    L = rossler_simulation(3050, 0.01, Y0)  # Solve the Rossler system
     L = rotate(L)  # Necessarry to have a clockwise flow
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'rossler_'+str(ID)+'_rk4')
@@ -36,10 +37,14 @@ def rossler_first_return_map(ID):
                 if tpsec != 0:
                     appli.append([tpsec, sec, in_section[1]])
     # Uncomment to save data: the section and the first return map values
-    save_data(section, 'rossler_'+str(ID)+'_section')
+    # save_data(section, 'rossler_'+str(ID)+'_section')
     # save_data(appli, 'rossler_'+str(ID)+'_appli')
     print(len(appli))  # number of points in the map
-    return appli
+    # appli_0 = appli[:, 0]
+    first_c = []
+    for i in range(500):
+        first_c.append(appli[i][0])
+    return first_c
 
 
 def rossler_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0], alpha=-0.25):
@@ -53,10 +58,13 @@ def rossler_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0], alpha=-0.25):
 
 
 def save_data(L, name):
-    fichier = open(name+".dat", 'w')
+    file = open(name+".dat", 'w')
     for line in L:
-        fichier.write(str(line[0])+"\t"+str(line[2])+"\n")
-    fichier.close()
+        # CORRECT HERE
+        for i in range(len(line)-1):
+            file.write(str(line[i])+"\t")
+        file.write(str(line[len(line)-1])+"\n")
+    file.close()
 
 
 def poincare_section(sens, plan, v0, v1, obs0, obs1):
@@ -96,7 +104,7 @@ def lorenz_first_return_map(ID):
     b = 8.0/3.0
     s = 10.0
     # resolution of the system with Runge-Kutta
-    L = lorenz_simulation(1000000, 0.01, Y0)
+    L = lorenz_simulation(450, 0.01, Y0)
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'lorenz_'+str(ID)+'_rk4')
     appli = list()
@@ -140,8 +148,11 @@ def lorenz_first_return_map(ID):
     # Uncomment to save data: the section and the first return map values
     # save_data(section, 'lorenz_'+str(ID)+'_section')
     # save_data(appli, 'lorenz_'+str(ID)+'_appli')
-    print(len(appli))  # number of points in the map
-    return appli
+    print(len(appli)) # number of points in the map
+    first_c = []
+    for i in range(500):
+        first_c.append(appli[i][0])
+    return first_c
 
 
 def lorenz_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0]):
@@ -156,17 +167,21 @@ def lorenz_simulation(temps=1000, pas=0.001, Y0=[-0.4, 0, 0]):
 
 def main():
     # Generate values for Rossler and Lorenz Maps
-    for ID in range(30):
+    ID = 5
+    rossler_map = np.ndarray(shape=(500,100), dtype=float, order='F')
+    lorenz_map = np.ndarray(shape=(500,100), dtype=float, order='F')
+
+    for experiment in range(1):
     # TODO change the ID value to have different application for each particle for PSO
-        ID2 = ID
-        if ID == 4: # 4 causes error
-            ID = 30
-        appli = rossler_first_return_map(ID) # appli in [0:1]
-        save_data(appli, 'maps/rossler_'+str(ID2)+'_appli')
-        appli = lorenz_first_return_map(ID) # WARNING appli in [0:2]
-        save_data(appli, 'maps/lorenz_'+str(ID2)+'_appli')
-    # appli = lorenz_first_return_map(0)  # WARNING appli in [0:2]
-    # save_data(appli, 'maps/lorenz_' + str(1) + '_appli')
+        for i in range(2):
+            appli = rossler_first_return_map(ID) # appli in [0]
+            rossler_map[:, i] = appli
+            appli = lorenz_first_return_map(ID)  # appli in [0]
+            lorenz_map[:, i] = appli
+            ID += 1
+        save_data(rossler_map, 'maps/rossler_maps/rossler_'+str(experiment)+'_map')
+        save_data(lorenz_map, 'maps/lorenz_maps/lorenz_'+str(experiment)+'_map')
+
 
 if __name__ == '__main__':
     main()
