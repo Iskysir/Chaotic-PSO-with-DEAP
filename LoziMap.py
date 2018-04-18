@@ -6,13 +6,20 @@ from numpy import random
 
 
 def LoziMap(a, b, x, y):
-	return 1 - a*abs(x) + b*y, x
+	temp = x
+	x = 1 - a * abs(x) + b * y
+	y = temp
+	if not (0 < x < 1 and 0 < y < 1):
+		LoziMap(a, b, x, y)
+	return x, y
+
 
 def save_data(L, name):
     file = open("./maps/"+name+".dat", 'w')
     for line in L:
         file.write(str(line[0])+"\t"+str(line[1])+"\n")
     file.close()
+
 
 def main(a, b):
 	# Map dependent parameters
@@ -21,13 +28,13 @@ def main(a, b):
 	iterations = 50000
 
 	# Initial Condition
-	xtemp = random.uniform(0, 1.0)
-	ytemp = random.uniform(0, 1.0)
+	xtemp = random.uniform(0., 1.)
+	ytemp = random.uniform(0., 1.)
 
-	x = [xtemp]
-	y = [ytemp]
+	x = [max(xtemp, -xtemp)]
+	y = [max(ytemp, -ytemp)]
 
-	for n in range(0, iterations):
+	for n in range(iterations):
 		xtemp, ytemp = LoziMap(a, b, xtemp, ytemp)
 		x.append(xtemp)
 		y.append(ytemp)
@@ -45,5 +52,5 @@ if __name__ == '__main__':
     #     appli = lorenz_first_return_map(ID)  # WARNING appli in [0:2]
     #     save_data(appli, 'lorenz_' + str(ID) + '_appli')
 	# main(1.4, 0.35)
-	main(1.7, 0.5)
+	main(1.7, 0.45)
 
