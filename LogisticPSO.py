@@ -1,20 +1,22 @@
 import random
-from typing import Any, Union, Generator
 import numpy
 import operator
 import matplotlib.pyplot as plt
-import chaos_2018
+
 from deap import base, benchmarks, creator, tools
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Particle", list, fitness=creator.FitnessMin, speed=list, smin=None, smax=None, best=None)
-
+toolbox = base.Toolbox()
 #  number of generations
-GEN = 200  # type: int
+GEN = 0  # type: int
 #  population size
-POP_SIZE = 10  # type: int
-pos0 = []  # type: List[Double]
-vel0 = []  # type: List[Double]
+POP_SIZE = 0  # type: int
+#  particle DIMENSION
+DIMENSION = 0
+chaos1 = []
+chaos2 = []
+MAP = []
 
 
 def LogisticMap(xn):
@@ -35,13 +37,13 @@ def save_data(file_name, average_mins):
 
 
 def generate(size, pmin, pmax, smin, smax):
-    global pos0
+    global chaos1, chaos2
     for _ in range(size):
-        pos0.append(random.uniform(0, 1.))
+        chaos1.append(random.uniform(0, 1.))
     for _ in range(size):
-        vel0.append(random.uniform(0, 1.))
+        chaos2.append(random.uniform(0, 1.))
+
     part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
-    # part = creator.Particle(pos0[i] for i in range(size))
     part.speed = [random.uniform(smin, smax) for _ in range(size)]
     part.smin = smin
     part.smax = smax
@@ -49,12 +51,12 @@ def generate(size, pmin, pmax, smin, smax):
 
 
 def updateParticle(part, best, phi1, phi2):
-    global pos0, vel0
+    global chaos1, chaos2
     posN = []
     posM = []
-    for val in pos0:
+    for val in chaos1:
         posN.append(chaoticFunc(val))
-    for val in vel0:
+    for val in chaos2:
         posM.append(chaoticFunc(val))
     u1 = (posN[i] for i in range(len(part)))
     u2 = (posM[i] for i in range(len(part)))
@@ -68,15 +70,8 @@ def updateParticle(part, best, phi1, phi2):
             part.speed[i] = part.smax
     part[:] = list(map(operator.add, part, part.speed))
     #  Update pos0 with new elements of chaos in the end
-    pos0 = posN
-    vel0 = posM
-
-
-toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=60, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
-toolbox.register("population", tools.initRepeat, list, toolbox.particle)
-toolbox.register("update", updateParticle, phi1=1.0, phi2=1.0)
-toolbox.register("evaluate", benchmarks.sphere)
+    chaos1 = posN
+    chaos2 = posM
 
 
 def main():
@@ -107,16 +102,26 @@ def main():
     return pop, logbook, best
 
 
-if __name__ == '__main__':
-    noe = 30  # number of experiments
+def logistic_cluster_run(generation, particle, dimension, experiment):
+    global GEN, POP_SIZE, EXPERIMENT, DIMENSION, toolbox
+    GEN = generation
+    POP_SIZE = particle
+    EXPERIMENT = experiment
+    DIMENSION = dimension
+    toolbox.register("particle", generate, size=DIMENSION, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    toolbox.register("population", tools.initRepeat, list, toolbox.particle)
+    toolbox.register("update", updateParticle, phi1=1.0, phi2=1.0)
+    toolbox.register("evaluate", benchmarks.sphere)
+
+    # number of experiments
     average_mins = [0.] * GEN
-    for r in range(noe):
+    for r in range(EXPERIMENT):
         pop, logbook, best = main()
         print(logbook.select("min"))
         gen = logbook.select("gen")
         fit_mins = logbook.select("min")
         for i in range(GEN):
-            average_mins[i] += fit_mins[i]/noe
+            average_mins[i] += fit_mins[i] / EXPERIMENT
 
     file_name = "logistic_results"
     save_data(file_name, average_mins)
@@ -125,3 +130,7 @@ if __name__ == '__main__':
     plt.ylabel("Minimum Fitness")
     plt.plot(gen, average_mins)
     plt.show()
+
+
+if __name__ == '__main__':
+    logistic_cluster_run(100, 10, 5, 30)
