@@ -6,12 +6,29 @@ from numpy import random
 
 
 def LoziMap(a, b, x, y):
-	temp = x
-	x = 1 - a * abs(x) + b * y
-	y = temp
-	if not (0 < x < 1 and 0 < y < 1):
-		LoziMap(a, b, x, y)
-	return x, y
+	LB = -10000.
+	UB = 10000.
+	if a == 1.5 and -0.5 <= b <= 0.47:
+		if b <= 0.4225:
+			if b < -0.37:
+				LB = -4.82296 * b**2 - 1.47635 * b + 0.4662
+			elif b >= -0.37:
+				LB = 0.15227 * b**2 + 0.695025 * b + 1.00494
+			UB = -0.58728 * b**3 - 0.20915 * b ** 2 - 0.94836 * b - 0.50321
+		elif b > 0.4225:
+			LB = -2.55404 * b + 1.30011
+			UB = 0.03116 * b - 0.831737
+
+	elif 1.8 >= a >= 1.1 and b == 0.1:
+		UB = -1.00691 * a + 0.90294
+		if a < 1.23703:
+			LB = 6.31887 * a**2 - 14.4394 * a + 8.04677
+		elif 1.23703 <= a < 1.40334:
+			LB = 2.8679 * a**2 - 5.92552 * a + 3.05
+		elif 1.40334 <= a:
+			LB = -0.05148 * a + 1.14403
+
+	return ((1 - a * abs(x) + b * y) - LB) / (UB - LB), x
 
 
 def save_data(L, name):
@@ -28,11 +45,11 @@ def main(a, b):
 	iterations = 50000
 
 	# Initial Condition
-	xtemp = random.uniform(0., 1.)
-	ytemp = random.uniform(0., 1.)
+	xtemp = random.uniform(0, 1.)
+	ytemp = random.uniform(0, 1.)
 
-	x = [max(xtemp, -xtemp)]
-	y = [max(ytemp, -ytemp)]
+	x = [xtemp]
+	y = [ytemp]
 
 	for n in range(iterations):
 		xtemp, ytemp = LoziMap(a, b, xtemp, ytemp)
@@ -52,5 +69,4 @@ if __name__ == '__main__':
     #     appli = lorenz_first_return_map(ID)  # WARNING appli in [0:2]
     #     save_data(appli, 'lorenz_' + str(ID) + '_appli')
 	# main(1.4, 0.35)
-	main(1.7, 0.45)
-
+	main(1.5, 0.45)
