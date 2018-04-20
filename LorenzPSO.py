@@ -77,8 +77,8 @@ def lorenz(x, y, z):
 
 
 # Normalized Algorithm based on paper
-def Normalizer(val):
-    return (val - z_LB) / (z_UB - z_LB)
+def Normalizer(X, Y, Z):
+    return (X - x_LB) / (x_UB - x_LB), (Y - y_LB) / (y_UB - y_LB), (Z - z_LB) / (z_UB - z_LB)
 
 
 #  Change each element inside the MAP to next chaotic value
@@ -110,8 +110,8 @@ def updateParticle(part, best, phi1, phi2):
     global chaos1, chaos2, current_particle
 
     # get dimension values for specific current particle in MAP1,2
-    temp_chaos1 = Normal_Map1[2][current_particle][:]
-    temp_chaos2 = Normal_Map2[2][current_particle][:]
+    temp_chaos1 = Normal_Map1[0][current_particle][:]
+    temp_chaos2 = Normal_Map2[0][current_particle][:]
     # print(current_particle)
 
     # for val1, val2 in zip(chaos1, chaos2):
@@ -184,8 +184,8 @@ def main():
         # Normalize MAPS
         for i in range(POP_SIZE):
             for j in range(DIMENSION):
-                Normal_Map1[2][i][j] = Normalizer(Map1[2][i][j])
-                Normal_Map2[2][i][j] = Normalizer(Map2[2][i][j])
+                Normal_Map1[0][i][j], Normal_Map1[1][i][j], Normal_Map1[2][i][j] = Normalizer(Map1[0][i][j], Map1[1][i][j], Map1[2][i][j])
+                Normal_Map2[0][i][j], Normal_Map2[1][i][j], Normal_Map2[2][i][j] = Normalizer(Map2[0][i][j], Map2[1][i][j], Map2[2][i][j])
         # Normalize MAPS end
         current_gen += 1
 
