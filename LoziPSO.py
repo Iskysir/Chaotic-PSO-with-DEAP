@@ -1,27 +1,74 @@
 import random
-from typing import Any, Union, Generator, List, Tuple
-import numpy
+import numpy as np
+from typing import List
 import operator
 import matplotlib.pyplot as plt
-import chaos_2018
+
 from deap import base, benchmarks, creator, tools
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Particle", list, fitness=creator.FitnessMin, speed=list, smin=None, smax=None, best=None)
-
+toolbox = base.Toolbox()
 #  number of generations
-GEN = 200  # type: int
+GEN = 0  # type: int
 #  population size
-SIZE = 10  # type: int
-pos0 = []  # type: List[Double]
-vel0 = []  # type: List[Double]
+POP_SIZE = 0  # type: int
+#  particle DIMENSION
+DIMENSION = 0
+current_dim = 0
+current_part_generate = 0
+current_particle = 0
+current_gen = 0
+chaos1 = []
+chaos2 = []
+Map1 = []
+Map2 = []
+Normal_Map1 = []
+Normal_Map2 = []
+a = 1.7
+b = 0.1
 
-
+# Lozi map
 def LoziMap(x, y):
-    # Map dependent parameters
-    a = 1.7
-    b = 0.3
-    return 1. - a * abs(x) + b * y, x
+    global a, b
+    return 1 - a * abs(x) + b * y, x
+
+
+# Normalized Algorithm based on paper
+def Normalizer(x):
+    global a, b
+    LB = -10000.
+    UB = 10000.
+    if a == 1.5 and -0.5 <= b <= 0.47 and b is not 0.1:
+        if b <= 0.4225:
+            UB = -0.58728 * b**3 - 0.20915 * b ** 2 - 0.94836 * b - 0.50321
+        elif b > 0.4225:
+            UB = 0.03116 * b - 0.831737
+        if b < -0.37:
+            LB = -4.82296 * b ** 2 - 1.47635 * b + 0.4662
+        elif -0.37 <= b < 0.4225:
+            LB = 0.15227 * b ** 2 + 0.695025 * b + 1.00494
+        elif b >= 0.4225:
+            LB = -2.55404 * b + 1.30011
+
+    elif 1.8 >= a >= 1.1 and b == 0.1:
+        UB = -1.00691 * a + 0.90294
+        if a < 1.23703:
+            LB = 6.31887 * a**2 - 14.4394 * a + 8.04677
+        elif 1.23703 <= a < 1.40334:
+            LB = 2.8679 * a**2 - 5.92552 * a + 3.05
+        elif 1.40334 <= a:
+            LB = -0.05148 * a + 1.14403
+
+    return (x - LB) / (UB - LB)
+
+
+#  Change each element inside the MAP to next chaotic value
+def chaoticFunc(MAP):
+    for i in range(POP_SIZE):
+        for j in range(DIMENSION):
+            MAP[0][i][j], MAP[1][i][j] = LoziMap(MAP[0][i][j], MAP[1][i][j])
+    return MAP
 
 
 def save_data(file_name, average_mins):
@@ -32,13 +79,9 @@ def save_data(file_name, average_mins):
 
 
 def generate(size, pmin, pmax, smin, smax):
-    global pos0
-    for _ in range(size):
-        pos0.append(random.uniform(0, 1.))
-    for _ in range(size):
-        vel0.append(random.uniform(0, 1.))
+    global chaos1, chaos2, current_part_generate
+
     part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
-    # part = creator.Particle(pos0[i] for i in range(size))
     part.speed = [random.uniform(smin, smax) for _ in range(size)]
     part.smin = smin
     part.smax = smax
@@ -46,15 +89,20 @@ def generate(size, pmin, pmax, smin, smax):
 
 
 def updateParticle(part, best, phi1, phi2):
-    global pos0, vel0
-    posN = []
-    velN = []
-    for p, v in zip(pos0, vel0):
-        pNext, vNext = LoziMap(p, v)
-        posN.append(pNext )
-        velN.append(vNext )
-    u1 = (posN[i] for i in range(len(part)))
-    u2 = (velN[i] for i in range(len(part)))
+    global chaos1, chaos2, current_particle
+
+    # get dimension values for specific current particle in MAP1,2
+    temp_chaos1 = Normal_Map1[0][current_particle][:]
+    temp_chaos2 = Normal_Map2[0][current_particle][:]
+    # print(current_particle)
+
+    # for val1, val2 in zip(chaos1, chaos2):
+    #     temp_chaos1.append(chaoticFunc(val1))
+    #     temp_chaos2.append(chaoticFunc(val2))
+
+    # assign them as the new random variables
+    u1 = (temp_chaos1[i]*phi1 for i in range(len(part)))
+    u2 = (temp_chaos2[i]*phi2 for i in range(len(part)))
     v_u1 = map(operator.mul, u1, map(operator.sub, part.best, part))
     v_u2 = map(operator.mul, u2, map(operator.sub, best, part))
     part.speed = list(map(operator.add, part.speed, map(operator.add, v_u1, v_u2)))
@@ -64,32 +112,39 @@ def updateParticle(part, best, phi1, phi2):
         elif speed > part.smax:
             part.speed[i] = part.smax
     part[:] = list(map(operator.add, part, part.speed))
-    #  Update pos0 with new elements of chaos in the end
-    pos0 = posN
-    vel0 = velN
 
-
-toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=60, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
-toolbox.register("population", tools.initRepeat, list, toolbox.particle)
-toolbox.register("update", updateParticle, phi1=1.0, phi2=1.0)
-toolbox.register("evaluate", benchmarks.sphere)
+    #  Increase particle index
+    current_particle += 1
 
 
 def main():
-    pop = toolbox.population(n=SIZE)
+    global current_gen, Map1, Map2, current_particle, Normal_Map1, Normal_Map2
+    pop = toolbox.population(n=POP_SIZE)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", numpy.mean)
-    stats.register("std", numpy.std)
-    stats.register("min", numpy.min)
-    stats.register("max", numpy.max)
+    stats.register("avg", np.mean)
+    stats.register("std", np.std)
+    stats.register("min", np.min)
+    stats.register("max", np.max)
 
     logbook = tools.Logbook()
     logbook.header = ["gen", "evals"] + stats.fields
 
     best = None
+    # map[:, i] = appli
+    # CHAOTIC MAP GENERATOR
+    # MAP = np.ndarray(shape=(POP_SIZE, DIMENSION), dtype=float, order='F')
+    # Initial MAP contains all randoms with PARTxDIM
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
 
+    Normal_Map1 = Map1
+    Normal_Map2 = Map2
+    current_gen = 0
     for g in range(GEN):
+        current_particle = 0
+
         for part in pop:
             part.fitness.values = toolbox.evaluate(part)
             if not part.best or part.best.fitness < part.fitness:
@@ -101,19 +156,42 @@ def main():
         for part in pop:
             toolbox.update(part, best)
         logbook.record(gen=g, evals=len(pop), **stats.compile(pop))
+
+        # Update maps with next chaotic level
+        Map1 = chaoticFunc(Map1)
+        Map2 = chaoticFunc(Map2)
+
+        # Normalize MAPS
+        for i in range(POP_SIZE):
+            for j in range(DIMENSION):
+                Normal_Map1[0][i][j] = Normalizer(Map1[0][i][j])
+                Normal_Map2[0][i][j] = Normalizer(Map2[0][i][j])
+        # Normalize MAPS end
+        current_gen += 1
+
     return pop, logbook, best
 
 
-if __name__ == '__main__':
-    noe = 30  # number of experiments
+def lozi_cluster_run(generation, particle, dimension, experiment):
+    global GEN, POP_SIZE, EXPERIMENT, DIMENSION, toolbox, current_dim, current_part_generate
+    GEN = generation
+    POP_SIZE = particle
+    EXPERIMENT = experiment
+    DIMENSION = dimension
+    toolbox.register("particle", generate, size=DIMENSION, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    toolbox.register("population", tools.initRepeat, list, toolbox.particle)
+    toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
+    toolbox.register("evaluate", benchmarks.sphere)
+
+    # number of experiments
     average_mins = [0.] * GEN
-    for r in range(noe):
+    for r in range(EXPERIMENT):
         pop, logbook, best = main()
         print(logbook.select("min"))
         gen = logbook.select("gen")
         fit_mins = logbook.select("min")
         for i in range(GEN):
-            average_mins[i] += fit_mins[i]/noe
+            average_mins[i] += fit_mins[i] / EXPERIMENT
 
     file_name = "lozi_results"
     save_data(file_name, average_mins)
@@ -122,3 +200,7 @@ if __name__ == '__main__':
     plt.ylabel("Minimum Fitness")
     plt.plot(gen, average_mins)
     plt.show()
+
+
+if __name__ == '__main__':
+    lozi_cluster_run(100, 15, 10, 30)

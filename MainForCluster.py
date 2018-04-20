@@ -1,10 +1,12 @@
 import BasicPSO
+import LogisticPSO
+import LoziPSO
 
 
 def main(generation, particle, dimension, experiment):
     BasicPSO.basic_cluster_run(generation, particle, dimension, experiment)
-    # LogisticPSO.logistic_cluster_run(generation, particle, dimension, experiment)
-    # LoziPSO.lozi_cluster_run(generation, particle, dimension, experiment)
+    LogisticPSO.logistic_cluster_run(generation, particle, dimension, experiment)
+    LoziPSO.lozi_cluster_run(generation, particle, dimension, experiment)
     # RosslerPSO.rossler_cluster_run(generation, particle, dimension, experiment)
     # LorenzPSO.lorenz_cluster_run(generation, particle, dimension, experiment)
 
