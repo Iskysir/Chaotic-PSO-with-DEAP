@@ -1,6 +1,5 @@
 import random
 import numpy as np
-from typing import List
 import operator
 import matplotlib.pyplot as plt
 
@@ -25,20 +24,20 @@ Map1 = []
 Map2 = []
 Normal_Map1 = []
 Normal_Map2 = []
-a = 1.7
-b = 0.1
+a = 1.5
+b = 0.45
 
 # Lozi map
 def LoziMap(x, y):
     global a, b
-    return 1 - a * abs(x) + b * y, x
+    return 1. - a * abs(x) + b * y, x
 
 
 # Normalized Algorithm based on paper
 def Normalizer(x):
     global a, b
-    LB = -10000.
-    UB = 10000.
+    LB = 1.
+    UB = 0.
     if a == 1.5 and -0.5 <= b <= 0.47 and b is not 0.1:
         if b <= 0.4225:
             UB = -0.58728 * b**3 - 0.20915 * b ** 2 - 0.94836 * b - 0.50321
@@ -60,7 +59,7 @@ def Normalizer(x):
         elif 1.40334 <= a:
             LB = -0.05148 * a + 1.14403
 
-    return (x - LB) / (UB - LB)
+    return (x - UB) / (LB - UB)
 
 
 #  Change each element inside the MAP to next chaotic value
