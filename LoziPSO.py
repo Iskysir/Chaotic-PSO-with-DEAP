@@ -12,8 +12,8 @@ toolbox = base.Toolbox()
 GEN = 0  # type: int
 #  population size
 POP_SIZE = 0  # type: int
-#  particle DIMENSION
-DIMENSION = 0
+#  particle dimension size
+DIM_SIZE = 0
 current_dim = 0
 current_part_generate = 0
 current_particle = 0
@@ -24,8 +24,8 @@ Map1 = []
 Map2 = []
 Normal_Map1 = []
 Normal_Map2 = []
-a = 1.5
-b = 0.45
+a = 1.4
+b = 0.35
 
 # Lozi map
 def LoziMap(x, y):
@@ -65,7 +65,7 @@ def Normalizer(x):
 #  Change each element inside the MAP to next chaotic value
 def chaoticFunc(MAP):
     for i in range(POP_SIZE):
-        for j in range(DIMENSION):
+        for j in range(DIM_SIZE):
             MAP[0][i][j], MAP[1][i][j] = LoziMap(MAP[0][i][j], MAP[1][i][j])
     return MAP
 
@@ -131,12 +131,12 @@ def main():
     best = None
     # map[:, i] = appli
     # CHAOTIC MAP GENERATOR
-    # MAP = np.ndarray(shape=(POP_SIZE, DIMENSION), dtype=float, order='F')
+    # MAP = np.ndarray(shape=(POP_SIZE, DIM_SIZE), dtype=float, order='F')
     # Initial MAP contains all randoms with PARTxDIM
-    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
 
     Normal_Map1 = Map1
     Normal_Map2 = Map2
@@ -162,7 +162,7 @@ def main():
 
         # Normalize MAPS
         for i in range(POP_SIZE):
-            for j in range(DIMENSION):
+            for j in range(DIM_SIZE):
                 Normal_Map1[0][i][j] = Normalizer(Map1[0][i][j])
                 Normal_Map2[0][i][j] = Normalizer(Map2[0][i][j])
         # Normalize MAPS end
@@ -172,12 +172,12 @@ def main():
 
 
 def lozi_cluster_run(generation, particle, dimension, experiment):
-    global GEN, POP_SIZE, EXPERIMENT, DIMENSION, toolbox, current_dim, current_part_generate
+    global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox, current_dim, current_part_generate
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
-    DIMENSION = dimension
-    toolbox.register("particle", generate, size=DIMENSION, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    DIM_SIZE = dimension
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
     toolbox.register("evaluate", benchmarks.sphere)
@@ -195,11 +195,13 @@ def lozi_cluster_run(generation, particle, dimension, experiment):
     file_name = "lozi_results"
     save_data(file_name, average_mins)
 
-    plt.xlabel("Generation")
-    plt.ylabel("Minimum Fitness")
-    plt.plot(gen, average_mins)
-    plt.show()
+    # plt.xlabel("Generation")
+    # plt.ylabel("Minimum Fitness")
+    # plt.plot(gen, average_mins)
+    # plt.show()
+
+    del toolbox, pop, logbook, best
 
 
 if __name__ == '__main__':
-    lozi_cluster_run(100, 15, 10, 30)
+    lozi_cluster_run(300, 20, 60, 30)

@@ -18,14 +18,14 @@ def num_rossler(x_n, y_n, z_n, h, a, b, c):
 def main():
 	# Now we prepare some variables
 	# First the parameters
-	a = 0.13
+	a = 0.2
 	b = 0.2
-	c = 6.5
+	c = 5.7
 
 	# Them the time interval and the step size
 	t_ini = 0
 	t_fin = 32 * pi
-	h = 0.0001
+	h = 0.01
 	numsteps = int((t_fin - t_ini) / h)
 
 	# using this parameters we build the time.

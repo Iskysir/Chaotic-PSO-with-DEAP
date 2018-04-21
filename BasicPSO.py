@@ -18,7 +18,7 @@ GEN = 0  # type: int
 #  population size
 POP_SIZE = 0  # type: int
 # number of dimensions in a particle
-DIMENSION = 0  # type: int
+DIM_SIZE = 0  # type: int
 
 
 def save_data(file_name, average_mins):
@@ -81,14 +81,15 @@ def main():
 
 # CALL THIS FUNCTION FROM OUTSIDE OF THE SCRIPT
 def basic_cluster_run(generation, particle, dimension, experiment):
-    global GEN, POP_SIZE, EXPERIMENT, DIMENSION, toolbox
+    print("BasicPSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
+    global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
-    DIMENSION = dimension
-    toolbox.register("particle", generate, size=DIMENSION, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    DIM_SIZE = dimension
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
-    toolbox.register("update", updateParticle, phi1=1.0, phi2=1.0)
+    toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
     toolbox.register("evaluate", benchmarks.sphere)
 
     average_mins = [0.] * GEN
@@ -103,12 +104,14 @@ def basic_cluster_run(generation, particle, dimension, experiment):
     file_name = "basic_results"
     save_data(file_name, average_mins)
 
-    plt.xlabel("Generation")
-    plt.ylabel("Minimum Fitness")
-    plt.plot(gen, average_mins)
-    plt.show()
+    # plt.xlabel("Generation")
+    # plt.ylabel("Minimum Fitness")
+    # plt.plot(gen, average_mins)
+    # plt.show()
+
+    del toolbox, pop, logbook, best
 
 
 if __name__ == "__main__":
-    basic_cluster_run(100, 10, 5, 30)
+    basic_cluster_run(200, 20, 100, 30)
 

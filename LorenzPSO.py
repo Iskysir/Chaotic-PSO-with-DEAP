@@ -12,18 +12,19 @@ toolbox = base.Toolbox()
 GEN = 0  # type: int
 #  population size
 POP_SIZE = 0  # type: int
-#  particle DIMENSION
-DIMENSION = 0
+#  particle dimension size
+DIM_SIZE = 0
 current_dim = 0
 current_part_generate = 0
 current_particle = 0
 current_gen = 0
-chaos1 = []
-chaos2 = []
 Map1 = []
 Map2 = []
 Normal_Map1 = []
 Normal_Map2 = []
+# For normalize x or y or z set 0 or 1 or 2
+norm_var_index = 1
+# Define arbitrary values to prevent error
 x_UB = 22
 x_LB = -21.5
 y_UB = 29.5
@@ -62,6 +63,12 @@ def BoundEstimator():
     y_LB = min(ys_list)
     z_UB = max(zs_list)
     z_LB = min(zs_list)
+    print("x: Upperbound and Lowerbound")
+    print(x_UB, x_LB)
+    print("y: Upperbound and Lowerbound")
+    print(y_UB, y_LB)
+    print("z: Upperbound and Lowerbound")
+    print(z_UB, z_LB)
     return
 
 
@@ -77,14 +84,14 @@ def lorenz(x, y, z):
 
 
 # Normalized Algorithm based on paper
-def Normalizer(X, Y, Z):
+def normalizer(X, Y, Z):
     return (X - x_LB) / (x_UB - x_LB), (Y - y_LB) / (y_UB - y_LB), (Z - z_LB) / (z_UB - z_LB)
 
 
 #  Change each element inside the MAP to next chaotic value
 def chaoticFunc(MAP):
     for i in range(POP_SIZE):
-        for j in range(DIMENSION):
+        for j in range(DIM_SIZE):
             MAP[0][i][j], MAP[1][i][j], MAP[2][i][j] = lorenz(MAP[0][i][j], MAP[1][i][j], MAP[2][i][j])
     return MAP
 
@@ -97,8 +104,6 @@ def save_data(file_name, average_mins):
 
 
 def generate(size, pmin, pmax, smin, smax):
-    global chaos1, chaos2, current_part_generate
-
     part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
     part.speed = [random.uniform(smin, smax) for _ in range(size)]
     part.smin = smin
@@ -107,17 +112,10 @@ def generate(size, pmin, pmax, smin, smax):
 
 
 def updateParticle(part, best, phi1, phi2):
-    global chaos1, chaos2, current_particle
-
+    global current_particle
     # get dimension values for specific current particle in MAP1,2
-    temp_chaos1 = Normal_Map1[0][current_particle][:]
-    temp_chaos2 = Normal_Map2[0][current_particle][:]
-    # print(current_particle)
-
-    # for val1, val2 in zip(chaos1, chaos2):
-    #     temp_chaos1.append(chaoticFunc(val1))
-    #     temp_chaos2.append(chaoticFunc(val2))
-
+    temp_chaos1 = Normal_Map1[norm_var_index][current_particle][:]
+    temp_chaos2 = Normal_Map2[norm_var_index][current_particle][:]
     # assign them as the new random variables
     u1 = (temp_chaos1[i]*phi1 for i in range(len(part)))
     u2 = (temp_chaos2[i]*phi2 for i in range(len(part)))
@@ -150,14 +148,14 @@ def main():
     best = None
     # map[:, i] = appli
     # CHAOTIC MAP GENERATOR
-    # MAP = np.ndarray(shape=(POP_SIZE, DIMENSION), dtype=float, order='F')
+    # MAP = np.ndarray(shape=(POP_SIZE, DIM_SIZE), dtype=float, order='F')
     # Initial MAP contains all randoms with PARTxDIM
-    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map1.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
-    Map2.append([[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)])
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
+    Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
 
     Normal_Map1 = Map1
     Normal_Map2 = Map2
@@ -183,9 +181,9 @@ def main():
 
         # Normalize MAPS
         for i in range(POP_SIZE):
-            for j in range(DIMENSION):
-                Normal_Map1[0][i][j], Normal_Map1[1][i][j], Normal_Map1[2][i][j] = Normalizer(Map1[0][i][j], Map1[1][i][j], Map1[2][i][j])
-                Normal_Map2[0][i][j], Normal_Map2[1][i][j], Normal_Map2[2][i][j] = Normalizer(Map2[0][i][j], Map2[1][i][j], Map2[2][i][j])
+            for j in range(DIM_SIZE):
+                Normal_Map1[0][i][j], Normal_Map1[1][i][j], Normal_Map1[2][i][j] = normalizer(Map1[0][i][j], Map1[1][i][j], Map1[2][i][j])
+                Normal_Map2[0][i][j], Normal_Map2[1][i][j], Normal_Map2[2][i][j] = normalizer(Map2[0][i][j], Map2[1][i][j], Map2[2][i][j])
         # Normalize MAPS end
         current_gen += 1
 
@@ -193,12 +191,14 @@ def main():
 
 
 def lorenz_cluster_run(generation, particle, dimension, experiment):
-    global GEN, POP_SIZE, EXPERIMENT, DIMENSION, toolbox, current_dim, current_part_generate
+    global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox, current_dim, current_part_generate
+    print("Lorenz PSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
-    DIMENSION = dimension
-    toolbox.register("particle", generate, size=DIMENSION, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    DIM_SIZE = dimension
+
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
     toolbox.register("evaluate", benchmarks.sphere)
@@ -218,11 +218,13 @@ def lorenz_cluster_run(generation, particle, dimension, experiment):
     file_name = "lorenz_results"
     save_data(file_name, average_mins)
 
-    plt.xlabel("Generation")
-    plt.ylabel("Minimum Fitness")
-    plt.plot(gen, average_mins)
-    plt.show()
+    # plt.xlabel("Generation")
+    # plt.ylabel("Minimum Fitness")
+    # plt.plot(gen, average_mins)
+    # plt.show()
+
+    del toolbox, pop, logbook, best
 
 
 if __name__ == '__main__':
-    lorenz_cluster_run(200, 20, 60, 30)
+    lorenz_cluster_run(500, 20, 60, 5)

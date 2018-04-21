@@ -12,8 +12,8 @@ toolbox = base.Toolbox()
 GEN = 0  # type: int
 #  population size
 POP_SIZE = 0  # type: int
-#  particle DIMENSION
-DIMENSION = 0
+#  particle dimension size
+DIM_SIZE = 0
 current_dim = 0
 current_particle = 0
 current_gen = 0
@@ -31,7 +31,7 @@ def LogisticMap(xn):
 #  Change each element inside the MAP to next chaotic value
 def chaoticFunc(MAP):
     for i in range(POP_SIZE):
-        for j in range(DIMENSION):
+        for j in range(DIM_SIZE):
             MAP[i][j] = LogisticMap(MAP[i][j])
     return MAP
 
@@ -99,8 +99,8 @@ def main():
     # CHAOTIC MAP GENERATOR
     # MAP = np.ndarray(shape=(POP_SIZE, DIMENSION), dtype=float, order='F')
     # Initial MAP contains all randoms with PARTxDIM
-    Map1 = [[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)]
-    Map2 = [[random.uniform(0, 1.) for _ in range(DIMENSION)] for _ in range(POP_SIZE)]
+    Map1 = [[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)]
+    Map2 = [[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)]
     current_gen = 0
     for g in range(GEN):
         current_particle = 0
@@ -126,12 +126,13 @@ def main():
 
 
 def logistic_cluster_run(generation, particle, dimension, experiment):
-    global GEN, POP_SIZE, EXPERIMENT, DIMENSION, toolbox, current_dim, current_part_generate
+    global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox, current_dim, current_part_generate
+    print("LogisticPSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
-    DIMENSION = dimension
-    toolbox.register("particle", generate, size=DIMENSION, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    DIM_SIZE = dimension
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
     toolbox.register("evaluate", benchmarks.sphere)
@@ -149,11 +150,12 @@ def logistic_cluster_run(generation, particle, dimension, experiment):
     file_name = "logistic_results"
     save_data(file_name, average_mins)
 
-    plt.xlabel("Generation")
-    plt.ylabel("Minimum Fitness")
-    plt.plot(gen, average_mins)
-    plt.show()
+    # plt.xlabel("Generation")
+    # plt.ylabel("Minimum Fitness")
+    # plt.plot(gen, average_mins)
+    # plt.show()
 
+    del toolbox, pop, logbook, best
 
 if __name__ == '__main__':
     logistic_cluster_run(500, 50, 100, 30)
