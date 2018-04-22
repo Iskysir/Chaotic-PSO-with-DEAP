@@ -22,82 +22,54 @@ Map1 = []
 Map2 = []
 Normal_Map1 = []
 Normal_Map2 = []
-# For normalize x or y or z set 0 or 1 or 2
-norm_var_index = 1
-# Define arbitrary values to prevent error
-x_UB = 22
-x_LB = -21.5
-y_UB = 29.5
-y_LB = -29
-z_UB = 54.5
-z_LB = 0
+a = 1.4
+b = 0.35
 
-
-def BoundEstimator():
-    global x_LB, x_UB, y_LB, y_UB, z_LB, z_UB
-    xs_list = []
-    ys_list = []
-    zs_list = []
-    for _ in range(100):
-        dt = 0.01
-        stepCnt = GEN
-
-        # Need one more for the initial values
-        xs = np.empty((stepCnt + 1,))
-        ys = np.empty((stepCnt + 1,))
-        zs = np.empty((stepCnt + 1,))
-
-        # Setting initial values
-        xs[0], ys[0], zs[0] = (np.random.rand(), np.random.rand(), np.random.rand())
-
-        # Stepping through "time".
-        for i in range(stepCnt):
-            # Derivatives of the X, Y, Z state
-            xs[i + 1], ys[i + 1], zs[i + 1] = lorenz(xs[i], ys[i], zs[i])
-        xs_list.extend(xs)
-        ys_list.extend(ys)
-        zs_list.extend(zs)
-    x_UB = max(xs_list)
-    x_LB = min(xs_list)
-    y_UB = max(ys_list)
-    y_LB = min(ys_list)
-    z_UB = max(zs_list)
-    z_LB = min(zs_list)
-    print("x: Upperbound and Lowerbound")
-    print(x_UB, x_LB)
-    print("y: Upperbound and Lowerbound")
-    print(y_UB, y_LB)
-    print("z: Upperbound and Lowerbound")
-    print(z_UB, z_LB)
-    return
-
-
-def lorenz(x, y, z):
-    dt = 0.01
-    s = 10.
-    r = 28.
-    b = 8./3.
-    x_dot = s*(y - x)
-    y_dot = r*x - y - x*z
-    z_dot = x*y - b*z
-    return x + x_dot * dt, y + y_dot * dt, z + z_dot * dt
+# Lozi map
+def LoziMap(x, y):
+    global a, b
+    return 1. - a * abs(x) + b * y, x
 
 
 # Normalized Algorithm based on paper
-def normalizer(X, Y, Z):
-    return (X - x_LB) / (x_UB - x_LB), (Y - y_LB) / (y_UB - y_LB), (Z - z_LB) / (z_UB - z_LB)
+def Normalizer(x):
+    global a, b
+    LB = 1.
+    UB = 0.
+    if a == 1.5 and -0.5 <= b <= 0.47 and b is not 0.1:
+        if b <= 0.4225:
+            UB = -0.58728 * b**3 - 0.20915 * b ** 2 - 0.94836 * b - 0.50321
+        elif b > 0.4225:
+            UB = 0.03116 * b - 0.831737
+        if b < -0.37:
+            LB = -4.82296 * b ** 2 - 1.47635 * b + 0.4662
+        elif -0.37 <= b < 0.4225:
+            LB = 0.15227 * b ** 2 + 0.695025 * b + 1.00494
+        elif b >= 0.4225:
+            LB = -2.55404 * b + 1.30011
+
+    elif 1.8 >= a >= 1.1 and b == 0.1:
+        UB = -1.00691 * a + 0.90294
+        if a < 1.23703:
+            LB = 6.31887 * a**2 - 14.4394 * a + 8.04677
+        elif 1.23703 <= a < 1.40334:
+            LB = 2.8679 * a**2 - 5.92552 * a + 3.05
+        elif 1.40334 <= a:
+            LB = -0.05148 * a + 1.14403
+
+    return (x - UB) / (LB - UB)
 
 
 #  Change each element inside the MAP to next chaotic value
 def chaoticFunc(MAP):
     for i in range(POP_SIZE):
         for j in range(DIM_SIZE):
-            MAP[0][i][j], MAP[1][i][j], MAP[2][i][j] = lorenz(MAP[0][i][j], MAP[1][i][j], MAP[2][i][j])
+            MAP[0][i][j], MAP[1][i][j] = LoziMap(MAP[0][i][j], MAP[1][i][j])
     return MAP
 
 
-def save_data(file_name, average_mins):
-    file = open("output/" + file_name + ".dat", 'w')
+def save_data(file_name, average_mins, problem_type):
+    file = open("output/" + problem_type+"/"+ file_name + ".dat", 'w')
     for record in average_mins:
         file.write(str(record) + "\n")
     file.close()
@@ -113,9 +85,11 @@ def generate(size, pmin, pmax, smin, smax):
 
 def updateParticle(part, best, phi1, phi2):
     global current_particle
+
     # get dimension values for specific current particle in MAP1,2
-    temp_chaos1 = Normal_Map1[norm_var_index][current_particle][:]
-    temp_chaos2 = Normal_Map2[norm_var_index][current_particle][:]
+    temp_chaos1 = Normal_Map1[0][current_particle][:]
+    temp_chaos2 = Normal_Map2[0][current_particle][:]
+
     # assign them as the new random variables
     u1 = (temp_chaos1[i]*phi1 for i in range(len(part)))
     u2 = (temp_chaos2[i]*phi2 for i in range(len(part)))
@@ -152,8 +126,6 @@ def main():
     # Initial MAP contains all randoms with PARTxDIM
     Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
     Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
-    Map1.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
-    Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
     Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
     Map2.append([[random.uniform(0, 1.) for _ in range(DIM_SIZE)] for _ in range(POP_SIZE)])
 
@@ -182,29 +154,60 @@ def main():
         # Normalize MAPS
         for i in range(POP_SIZE):
             for j in range(DIM_SIZE):
-                Normal_Map1[0][i][j], Normal_Map1[1][i][j], Normal_Map1[2][i][j] = normalizer(Map1[0][i][j], Map1[1][i][j], Map1[2][i][j])
-                Normal_Map2[0][i][j], Normal_Map2[1][i][j], Normal_Map2[2][i][j] = normalizer(Map2[0][i][j], Map2[1][i][j], Map2[2][i][j])
+                Normal_Map1[0][i][j] = Normalizer(Map1[0][i][j])
+                Normal_Map2[0][i][j] = Normalizer(Map2[0][i][j])
         # Normalize MAPS end
         current_gen += 1
 
     return pop, logbook, best
 
 
-def lorenz_cluster_run(generation, particle, dimension, experiment):
+def lozi_cluster_run(generation, particle, dimension, experiment, problem_type):
+    print("LoziPSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox, current_dim, current_part_generate
-    print("Lorenz PSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
     DIM_SIZE = dimension
 
-    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+    # Set initial position limits
+    if problem_type == "sphere" or problem_type == "griewank":
+        min_range, max_range = -5.12, 5.12
+    elif problem_type == "schaffer":
+        min_range, max_range = -100., 100.
+    elif problem_type == "rastrigin":
+        min_range, max_range = -600., 600.
+    elif problem_type == "rosenbrock":
+        min_range, max_range = -30., 30.
+    elif problem_type == "schwefel":
+        min_range, max_range = -500., 500.
+    elif problem_type == "ackley":
+        min_range, max_range = -15., 30.
+    elif problem_type == "himmelblau":
+        min_range, max_range = -6., 6.
+
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=min_range, pmax=max_range, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
-    toolbox.register("evaluate", benchmarks.sphere)
 
-    # Set normalizer bound values at first
-    BoundEstimator()
+    # Register selected problem
+    if problem_type == "sphere":
+        toolbox.register("evaluate", benchmarks.sphere)
+    elif problem_type == "griewank":
+        toolbox.register("evaluate", benchmarks.griewank)
+    elif problem_type == "rastrigin":
+        toolbox.register("evaluate", benchmarks.rastrigin)
+    elif problem_type == "schaffer":
+        toolbox.register("evaluate", benchmarks.schaffer)
+    elif problem_type == "rosenbrock":
+        toolbox.register("evaluate", benchmarks.rosenbrock)
+    elif problem_type == "schwefel":
+        toolbox.register("evaluate", benchmarks.schwefel)
+    elif problem_type == "ackley":
+        toolbox.register("evaluate", benchmarks.ackley)
+    elif problem_type == "himmelblau":
+        toolbox.register("evaluate", benchmarks.himmelblau)
+
     # number of experiments
     average_mins = [0.] * GEN
     for r in range(EXPERIMENT):
@@ -215,16 +218,14 @@ def lorenz_cluster_run(generation, particle, dimension, experiment):
         for i in range(GEN):
             average_mins[i] += fit_mins[i] / EXPERIMENT
 
-    file_name = "lorenz_results"
-    save_data(file_name, average_mins)
+    file_name = "lozi_results"
+    save_data(file_name, average_mins, problem_type)
 
     # plt.xlabel("Generation")
     # plt.ylabel("Minimum Fitness")
     # plt.plot(gen, average_mins)
     # plt.show()
 
-    del toolbox, pop, logbook, best
-
 
 if __name__ == '__main__':
-    lorenz_cluster_run(500, 20, 60, 5)
+    lozi_cluster_run(300, 20, 60, 30, "schaffer")

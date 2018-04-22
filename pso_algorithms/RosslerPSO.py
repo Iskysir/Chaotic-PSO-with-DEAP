@@ -18,8 +18,6 @@ current_dim = 0
 current_part_generate = 0
 current_particle = 0
 current_gen = 0
-chaos1 = []
-chaos2 = []
 Map1 = []
 Map2 = []
 Normal_Map1 = []
@@ -103,16 +101,14 @@ def chaoticFunc(MAP):
     return MAP
 
 
-def save_data(file_name, average_mins):
-    file = open("output/" + file_name + ".dat", 'w')
+def save_data(file_name, average_mins, problem_type):
+    file = open("output/" + problem_type+"/"+ file_name + ".dat", 'w')
     for record in average_mins:
         file.write(str(record) + "\n")
     file.close()
 
 
 def generate(size, pmin, pmax, smin, smax):
-    global chaos1, chaos2, current_part_generate
-
     part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
     part.speed = [random.uniform(smin, smax) for _ in range(size)]
     part.smin = smin
@@ -121,16 +117,11 @@ def generate(size, pmin, pmax, smin, smax):
 
 
 def updateParticle(part, best, phi1, phi2):
-    global chaos1, chaos2, current_particle
+    global current_particle
 
     # get dimension values for specific current particle in MAP1,2
     temp_chaos1 = Normal_Map1[norm_var_index][current_particle][:]
     temp_chaos2 = Normal_Map2[norm_var_index][current_particle][:]
-    # print(current_particle)
-
-    # for val1, val2 in zip(chaos1, chaos2):
-    #     temp_chaos1.append(chaoticFunc(val1))
-    #     temp_chaos2.append(chaoticFunc(val2))
 
     # assign them as the new random variables
     u1 = (temp_chaos1[i]*phi1 for i in range(len(part)))
@@ -206,17 +197,51 @@ def main():
     return pop, logbook, best
 
 
-def rossler_cluster_run(generation, particle, dimension, experiment):
+def rossler_cluster_run(generation, particle, dimension, experiment, problem_type):
     global GEN, POP_SIZE, EXP_SIZE, DIM_SIZE, toolbox, current_dim, current_part_generate
     print("RosslerPSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     GEN = generation
     POP_SIZE = particle
     EXP_SIZE = experiment
     DIM_SIZE = dimension
-    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+
+    # Set initial position limits
+    if problem_type == "sphere" or problem_type == "griewank":
+        min_range, max_range = -5.12, 5.12
+    elif problem_type == "schaffer":
+        min_range, max_range = -100., 100.
+    elif problem_type == "rastrigin":
+        min_range, max_range = -600., 600.
+    elif problem_type == "rosenbrock":
+        min_range, max_range = -30., 30.
+    elif problem_type == "schwefel":
+        min_range, max_range = -500., 500.
+    elif problem_type == "ackley":
+        min_range, max_range = -15., 30.
+    elif problem_type == "himmelblau":
+        min_range, max_range = -6., 6.
+
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=min_range, pmax=max_range, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
-    toolbox.register("evaluate", benchmarks.sphere)
+
+    # Register selected problem
+    if problem_type == "sphere":
+        toolbox.register("evaluate", benchmarks.sphere)
+    elif problem_type == "griewank":
+        toolbox.register("evaluate", benchmarks.griewank)
+    elif problem_type == "rastrigin":
+        toolbox.register("evaluate", benchmarks.rastrigin)
+    elif problem_type == "schaffer":
+        toolbox.register("evaluate", benchmarks.schaffer)
+    elif problem_type == "rosenbrock":
+        toolbox.register("evaluate", benchmarks.rosenbrock)
+    elif problem_type == "schwefel":
+        toolbox.register("evaluate", benchmarks.schwefel)
+    elif problem_type == "ackley":
+        toolbox.register("evaluate", benchmarks.ackley)
+    elif problem_type == "himmelblau":
+        toolbox.register("evaluate", benchmarks.himmelblau)
 
     # Set normalizer bound values at first
     BoundEstimator()
@@ -231,15 +256,13 @@ def rossler_cluster_run(generation, particle, dimension, experiment):
             average_mins[i] += fit_mins[i] / EXP_SIZE
 
     file_name = "rossler_results"
-    save_data(file_name, average_mins)
+    save_data(file_name, average_mins, problem_type)
 
     # plt.xlabel("Generation")
     # plt.ylabel("Minimum Fitness")
     # plt.plot(gen, average_mins)
     # plt.show()
 
-    del toolbox, pop, logbook, best
-
 
 if __name__ == '__main__':
-    rossler_cluster_run(200, 20, 60, 10)
+    rossler_cluster_run(200, 20, 60, 10, "rosenbrock")

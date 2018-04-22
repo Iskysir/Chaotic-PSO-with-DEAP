@@ -19,10 +19,15 @@ GEN = 0  # type: int
 POP_SIZE = 0  # type: int
 # number of dimensions in a particle
 DIM_SIZE = 0  # type: int
+# # type of the problem
+# problem_type = str
+# # range min
+# problem_smin = float
+# # range max
+# problem_smax = float
 
-
-def save_data(file_name, average_mins):
-    file = open("output/" + file_name + ".dat", 'w')
+def save_data(file_name, average_mins, problem_type):
+    file = open("output/" + problem_type+"/"+ file_name + ".dat", 'w')
     for record in average_mins:
         file.write(str(record) + "\n")
     file.close()
@@ -80,17 +85,51 @@ def main():
 
 
 # CALL THIS FUNCTION FROM OUTSIDE OF THE SCRIPT
-def basic_cluster_run(generation, particle, dimension, experiment):
+def basic_cluster_run(generation, particle, dimension, experiment, problem_type):
     print("BasicPSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
     DIM_SIZE = dimension
-    toolbox.register("particle", generate, size=DIM_SIZE, pmin=-5.12, pmax=5.12, smin=-0.5, smax=0.5)
+
+    if problem_type == "sphere" or problem_type == "griewank":
+        min_range, max_range = -5.12, 5.12
+    elif problem_type == "schaffer":
+        min_range, max_range = -100., 100.
+    elif problem_type == "rastrigin":
+        min_range, max_range = -600., 600.
+    elif problem_type == "rosenbrock":
+        min_range, max_range = -30., 30.
+    elif problem_type == "schwefel":
+        min_range, max_range = -500., 500.
+    elif problem_type == "ackley":
+        min_range, max_range = -15., 30.
+    elif problem_type == "himmelblau":
+        min_range, max_range = -6., 6.
+
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=min_range, pmax=max_range, smin=-0.5, smax=0.5)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
-    toolbox.register("evaluate", benchmarks.sphere)
+
+    # Register selected problem
+    if problem_type == "sphere":
+        toolbox.register("evaluate", benchmarks.sphere)
+    elif problem_type == "griewank":
+        toolbox.register("evaluate", benchmarks.griewank)
+    elif problem_type == "rastrigin":
+        toolbox.register("evaluate", benchmarks.rastrigin)
+    elif problem_type == "schaffer":
+        toolbox.register("evaluate", benchmarks.schaffer)
+    elif problem_type == "rosenbrock":
+        toolbox.register("evaluate", benchmarks.rosenbrock)
+    elif problem_type == "schwefel":
+        toolbox.register("evaluate", benchmarks.schwefel)
+    elif problem_type == "ackley":
+        toolbox.register("evaluate", benchmarks.ackley)
+    elif problem_type == "himmelblau":
+        toolbox.register("evaluate", benchmarks.himmelblau)
+
 
     average_mins = [0.] * GEN
     for r in range(EXPERIMENT):
@@ -102,16 +141,14 @@ def basic_cluster_run(generation, particle, dimension, experiment):
             average_mins[i] += fit_mins[i] / EXPERIMENT
 
     file_name = "basic_results"
-    save_data(file_name, average_mins)
+    save_data(file_name, average_mins, problem_type)
 
     # plt.xlabel("Generation")
     # plt.ylabel("Minimum Fitness")
     # plt.plot(gen, average_mins)
     # plt.show()
 
-    del toolbox, pop, logbook, best
-
 
 if __name__ == "__main__":
-    basic_cluster_run(200, 20, 100, 30)
+    basic_cluster_run(200, 20, 100, 30, "rastrigin")
 
