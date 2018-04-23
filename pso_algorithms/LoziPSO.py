@@ -162,9 +162,9 @@ def main():
     return pop, logbook, best
 
 
-def lozi_cluster_run(generation, particle, dimension, experiment, problem_type):
-    print("LoziPSO algorithm has started with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
+def lozi_cluster_run(generation, particle, dimension, experiment, problem_type, PHI1, PHI2, SMIN, SMAX, PMIN, PMAX):
     global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox, current_dim, current_part_generate
+    print("LoziPSO has started solving " + problem_type.swapcase() + " problem with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
@@ -178,7 +178,7 @@ def lozi_cluster_run(generation, particle, dimension, experiment, problem_type):
     elif problem_type == "rastrigin":
         min_range, max_range = -600., 600.
     elif problem_type == "rosenbrock":
-        min_range, max_range = -30., 30.
+        min_range, max_range = -2.048, 2.048
     elif problem_type == "schwefel":
         min_range, max_range = -500., 500.
     elif problem_type == "ackley":
@@ -186,9 +186,9 @@ def lozi_cluster_run(generation, particle, dimension, experiment, problem_type):
     elif problem_type == "himmelblau":
         min_range, max_range = -6., 6.
 
-    toolbox.register("particle", generate, size=DIM_SIZE, pmin=min_range, pmax=max_range, smin=-0.5, smax=0.5)
+    toolbox.register("particle", generate, size=DIM_SIZE, pmin=PMIN, pmax=PMAX, smin=SMIN, smax=SMAX)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
-    toolbox.register("update", updateParticle, phi1=2.0, phi2=2.0)
+    toolbox.register("update", updateParticle, phi1=PHI1, phi2=PHI2)
 
     # Register selected problem
     if problem_type == "sphere":
@@ -219,8 +219,9 @@ def lozi_cluster_run(generation, particle, dimension, experiment, problem_type):
             average_mins[i] += fit_mins[i] / EXPERIMENT
 
     file_name = "lozi_results"
-    save_data(file_name, average_mins, problem_type)
+    #save_data(file_name, average_mins, problem_type)
 
+    # plt.title(problem_type.swapcase())
     # plt.xlabel("Generation")
     # plt.ylabel("Minimum Fitness")
     # plt.plot(gen, average_mins)
