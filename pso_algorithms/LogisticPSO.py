@@ -162,7 +162,7 @@ def logistic_cluster_run(generation, particle, dimension, experiment, problem_ty
             average_mins[i] += fit_mins[i] / EXPERIMENT
 
     file_name = "logistic_results"
-    save_data(file_name, average_mins, problem_type)
+    #save_data(file_name, average_mins, problem_type)
 
     # plt.title(problem_type.swapcase())
     # plt.xlabel("Generation")
