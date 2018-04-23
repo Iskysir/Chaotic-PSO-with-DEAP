@@ -5,7 +5,8 @@ from matplotlib import style
 
 #style.use("fivethirtyeight")
 def main():
-    folder_names = ["sphere", "griewank", "rosenbrock", "schaffer", "rastrigin", "schwefel", "ackley", "himmelblau"]
+    # folder_names = ["sphere", "griewank", "rosenbrock", "schaffer", "rastrigin", "schwefel", "ackley", "himmelblau"]
+    folder_names = ["rosenbrock"]
     file_names = ["basic", "logistic", "lozi", "lorenz", "rossler"]
 #    colors = ['r-', 'g-', 'b-', 'y-', '-']
     data = [None] * len(file_names)
@@ -28,8 +29,8 @@ def main():
         plt.ylabel("Minimum Fitness")
         plt.legend([file_names[0], file_names[1], file_names[2], file_names[3], file_names[4]], loc='upper right')
         plt.savefig('/Users/tolgasaglik/PycharmProjects/cPSO/plots/' + folder + '_plot.png', dpi=500)
+        plt.show()
         plt.clf()
-#    plt.show()
 
 
 if __name__ == '__main__':

@@ -10,7 +10,18 @@ def rossler_first_return_map(ID, GEN):
     ensure to have distincts values for each call of the map
     """
     Y0 = [-0.3 - 0.00001 * ID, 0+ 0.00001 * ID, 0]
-    L = rossler_simulation(3050, 0.01, Y0)  # Solve the Rossler system
+    # estimate sim step to improve performance of the algorithm
+    sim_step = GEN
+    if 750 < GEN:
+        sim_step = int(GEN*6)
+    elif 200 <= GEN <= 750:
+        sim_step = int(GEN*6.5)
+    elif 100 <= GEN < 200:
+        sim_step = int(GEN*7)
+    elif 0 < GEN < 100:
+        sim_step = int(GEN * 7.5)
+
+    L = rossler_simulation(sim_step, 0.01, Y0)  # Solve the Rossler system
     L = rotate(L)  # Necessarry to have a clockwise flow
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'rossler_'+str(ID)+'_rk4')
@@ -103,8 +114,18 @@ def lorenz_first_return_map(ID, GEN):
     r = 28.0
     b = 8.0/3.0
     s = 10.0
+    # estimate sim step to improve performance of the algorithm
+    sim_step = GEN
+    if GEN >= 1000:
+        sim_step = int(GEN*0.8)
+    elif 500 <= GEN < 1000:
+        sim_step = int(GEN*0.825)
+    elif 300 <= GEN < 500:
+        sim_step = int(GEN*0.9)
+    elif GEN < 200:
+        sim_step = int(GEN*1.2)
     # resolution of the system with Runge-Kutta
-    L = lorenz_simulation(450, 0.01, Y0)
+    L = lorenz_simulation(sim_step, 0.01, Y0)
     # Uncomment to save the solution (require to create folder 'data')
     # save_data(L, 'lorenz_'+str(ID)+'_rk4')
     appli = list()
