@@ -50,7 +50,7 @@ def rossler_first_return_map(ID, GEN):
     # Uncomment to save data: the section and the first return map values
     # save_data(section, 'rossler_'+str(ID)+'_section')
     # save_data(appli, 'rossler_'+str(ID)+'_appli')
-    print(len(appli))  # number of points in the map
+    #print(len(appli))  # number of points in the map
     # appli_0 = appli[:, 0]
     first_c = []
     for i in range(GEN):
@@ -169,7 +169,7 @@ def lorenz_first_return_map(ID, GEN):
     # Uncomment to save data: the section and the first return map values
     # save_data(section, 'lorenz_'+str(ID)+'_section')
     # save_data(appli, 'lorenz_'+str(ID)+'_appli')
-    print(len(appli)) # number of points in the map
+    #print(len(appli)) # number of points in the map
     first_c = []
     for i in range(GEN):
         first_c.append(appli[i][0])
