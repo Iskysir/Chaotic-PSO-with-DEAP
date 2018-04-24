@@ -1,9 +1,7 @@
 import random
 import numpy as np
 import operator
-import matplotlib.pyplot as plt
-from attractors_and_maps import chaos_2018
-
+import chaos_2018
 from deap import base, benchmarks, creator, tools
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -32,9 +30,9 @@ def generate_maps(generation_size, population_size, dimension_size, ID_start_poi
         Map1_layer = np.random.rand(generation_size, 0)
         Map2_layer = np.random.rand(generation_size, 0)
         for _ in range(dimension_size):
-            Map1_layer = np.c_[Map1_layer, chaos_2018.lorenz_first_return_map(ID,generation_size)]
+            Map1_layer = np.c_[Map1_layer, chaos_2018.rossler_first_return_map(ID, generation_size)]
             ID += 1
-            Map2_layer = np.c_[Map2_layer, chaos_2018.lorenz_first_return_map(ID,generation_size)]
+            Map2_layer = np.c_[Map2_layer, chaos_2018.rossler_first_return_map(ID, generation_size)]
             ID += 1
         Map1.append(Map1_layer)
         Map2.append(Map2_layer)
@@ -113,18 +111,18 @@ def main():
     return pop, logbook, best
 
 
-def lorenz_cluster_run(generation, particle, dimension, experiment, problem_type, PHI1, PHI2, SMIN, SMAX, PMIN, PMAX):
+def rossler_cluster_run(generation, particle, dimension, experiment, problem_type, PHI1, PHI2, SMIN, SMAX, PMIN, PMAX):
     global GEN, POP_SIZE, EXPERIMENT, DIM_SIZE, toolbox, current_dim, current_part_generate
-    print("LorenzPSO has started solving " + problem_type.swapcase() + " problem with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
+    print("RosslerPSO has started solving " + problem_type.swapcase() + " problem with number of generations: "+str(generation)+", population size: "+str(particle)+", particle dimension: "+str(dimension)+" with experiment size of "+str(experiment))
     GEN = generation
     POP_SIZE = particle
     EXPERIMENT = experiment
     DIM_SIZE = dimension
 
+    # Register parameters
     toolbox.register("particle", generate, size=DIM_SIZE, pmin=PMIN, pmax=PMAX, smin=SMIN, smax=SMAX)
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("update", updateParticle, phi1=PHI1, phi2=PHI2)
-
     # Register selected problem
     if problem_type == "sphere":
         toolbox.register("evaluate", benchmarks.sphere)
@@ -158,9 +156,8 @@ def lorenz_cluster_run(generation, particle, dimension, experiment, problem_type
         for i in range(GEN):
             average_mins[i] += fit_mins[i] / EXPERIMENT
 
-    file_name = "lorenz_results"
+    file_name = "rossler_results"
     save_data(file_name, average_mins, problem_type)
-
     # plt.title(problem_type.swapcase())
     # plt.xlabel("Generation")
     # plt.ylabel("Minimum Fitness")
@@ -169,4 +166,5 @@ def lorenz_cluster_run(generation, particle, dimension, experiment, problem_type
 
 
 if __name__ == '__main__':
-    lorenz_cluster_run(100, 20, 10, 1, "sphere")
+    rossler_cluster_run(100, 5, 10, 2, "sphere")
+

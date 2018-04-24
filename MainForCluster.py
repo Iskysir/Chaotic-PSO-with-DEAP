@@ -1,4 +1,8 @@
-from pso_algorithms import RosslerPSO, LoziPSO, BasicPSO, LogisticPSO, LorenzPSO
+import LorenzPSO
+import BasicPSO
+import LogisticPSO
+import RosslerPSO
+import LoziPSO
 
 
 def main(generation, particle, dimension, experiment, problem_type, phi1, phi2, smin, smax, pmin, pmax):
